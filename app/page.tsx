@@ -27,6 +27,42 @@ function sanitize(list: Person[]): Person[] {
   return out;
 }
 
+const DOUBLE_WEIGHT_HANDLES = new Set<string>([
+  "@larionov_al",
+  "@nickbailo",
+  "@leibovY",
+  "@Fink_Big",
+  "@JeremyJem",
+  "@JacquesWhales",
+  "@yemjules",
+  "@cjhtech",
+  "@Hecrypton",
+  "@dimahorshkov",
+  "@RMogylnyi",
+  "@0xClemm",
+]);
+
+function pickWeightedIndex(list: Person[], last?: Person | null) {
+  let total = 0;
+
+  const weights = list.map((p) => {
+    if (last && p.handle === last.handle) return 0;
+    const w = DOUBLE_WEIGHT_HANDLES.has(p.handle) ? 2 : 1;
+    total += w;
+    return w;
+  });
+
+  let r = Math.random() * total;
+
+  for (let i = 0; i < weights.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return i;
+  }
+
+  return weights.length - 1;
+}
+
+
 // ✅ единственный детектор мобилки (используем ВЕЗДЕ)
 function isMobileDevice() {
   if (typeof window === "undefined") return false;
@@ -468,7 +504,9 @@ export default function HomePage() {
     startLoop();
 
     const len = people.length;
-    const winnerIndex = (Math.random() * len) | 0;
+    const winnerIndex = pickWeightedIndex(people, lastWinnerRef.current);
+
+
     const winner = people[winnerIndex];
     if (winner) preloadOnce(avatarSrc(winner)).then(() => {});
 
