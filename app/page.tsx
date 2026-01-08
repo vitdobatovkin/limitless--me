@@ -1195,6 +1195,8 @@ export default function HomePage() {
 @media (max-width: 768px) {
   /* ===== общий мобильный лейаут ===== */
   .wrap {
+    padding: 8px 12px 16px;
+    /* ✅ большой отступ снизу, чтобы Twitter/X in-app не перекрывал кнопки/футер */
     padding-bottom: calc(140px + env(safe-area-inset-bottom));
   }
 
@@ -1237,21 +1239,20 @@ export default function HomePage() {
     font-size: 14px;
   }
 
-  /* ===== FOOTER (STICKY) ===== */
-  @media (max-width: 768px) {
+  /* ===== FOOTER (mobile) =====
+     ⚠️ В Twitter in-app sticky/fixed часто перекрывается оверлеями,
+     поэтому делаем footer обычным блоком (static) + запас снизу уже есть в .wrap
+  */
   .creatorBadge {
-    position: sticky;
-    bottom: env(safe-area-inset-bottom);
-    z-index: 40;
-
+    position: static; /* ✅ вместо sticky/fixed */
     width: 100%;
-    margin: 2px auto 0;
-    padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
+    margin: 10px auto 0;
+    padding: 0 12px;
 
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
 
     font-size: 12px;
     line-height: 1;
@@ -1271,17 +1272,6 @@ export default function HomePage() {
   }
 }
 
-
-  .baseJoin {
-    padding-left: 0;
-    font-weight: 600;
-    color: rgba(10, 10, 10, 0.45);
-  }
-
-  .baseJoin::before {
-    display: none;
-  }
-}
 
 
 
