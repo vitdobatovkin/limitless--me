@@ -153,7 +153,7 @@ function useFullscreenConfetti() {
   }, []);
 
   const rand = (min: number, max: number) => Math.random() * (max - min) + min;
-  const COLORS = ["#0000FF", "#00D54B", "#FFD12F", "#FF3B30", "#A7FF5A"];
+  const COLORS = ["#04070F", "#D8F58C", "#2174CF", "#FFFFFF"];
 
   const spawn = (count: number) => {
     for (let i = 0; i < count; i++) {
@@ -687,12 +687,23 @@ export default function HomePage() {
 
       <style jsx global>{`
         :root {
-          --bg: #ffffff;
-          --text: #0a0b0d;
-          --muted: #5b616e;
-          --line: #eef0f3;
-          --blue: #0000ff;
+          --bg: #f2f3f5;
           --card: #ffffff;
+
+          --text: #04070f;
+          --muted: #51504e;
+
+          --line: #e6e8eb;
+
+          --lime: #d8f58c;
+          --brand-blue: #2174cf;
+
+          /* primary button */
+          --primary: #04070f;
+          --primaryText: #ffffff;
+
+          /* subtle shadows */
+          --shadow: rgba(4, 7, 15, 0.10);
         }
         * {
           box-sizing: border-box;
@@ -710,21 +721,19 @@ export default function HomePage() {
           overflow-x: hidden;
         }
         .texture {
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          background: radial-gradient(
-              900px 520px at 62% 12%,
-              rgba(10, 71, 255, 0.08),
-              transparent 65%
-            ),
-            repeating-linear-gradient(
-              90deg,
-              rgba(0, 0, 0, 0.035) 0 1px,
-              transparent 1px 6px
-            );
-          opacity: 0.55;
-          mix-blend-mode: multiply;
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+              radial-gradient(900px 520px at 62% 12%, rgba(33, 116, 207, 0.08), transparent 65%),
+              radial-gradient(720px 420px at 30% 18%, rgba(216, 245, 140, 0.18), transparent 60%),
+              repeating-linear-gradient(
+                90deg,
+                rgba(4, 7, 15, 0.035) 0 1px,
+                transparent 1px 6px
+              );
+            opacity: 0.65;
+            mix-blend-mode: multiply;
         }
         #confetti {
           position: fixed;
@@ -807,9 +816,9 @@ export default function HomePage() {
           margin: 44px auto 0;
           border: 1px solid var(--line);
           border-radius: 32px;
-          background: #fff;
+          background: var(--card);
           overflow: hidden;
-          box-shadow: 0 26px 80px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 26px 80px var(--shadow);
           position: relative;
         }
         .stage {
@@ -912,18 +921,18 @@ export default function HomePage() {
         }
 
         .winnerBadge {
-          position: absolute;
-          left: 12px;
-          top: 12px;
-          padding: 7px 9px;
-          border-radius: 999px;
-          background: rgba(0, 0, 255, 0.95);
-          color: #fff;
-          font-size: 10px;
-          font-weight: 950;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          box-shadow: 0 12px 26px rgba(0, 0, 0, 0.16);
+            position: absolute;
+            left: 12px;
+            top: 12px;
+            padding: 7px 9px;
+            border-radius: 999px;
+            background: var(--lime);
+            color: var(--text);
+            font-size: 10px;
+            font-weight: 950;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            box-shadow: 0 12px 26px rgba(4, 7, 15, 0.16);
         }
 
         .bigReelMask {
@@ -975,12 +984,12 @@ export default function HomePage() {
         }
 
         .actions {
-          display: flex;
-          padding: 24px 72px 28px;
-          border-top: 1px solid var(--line);
-          background: rgba(246, 247, 248, 0.55);
-          justify-content: center;
-          align-items: center;
+            display: flex;
+            padding: 24px 72px 28px;
+            border-top: 1px solid var(--line);
+            background: var(--bg);
+            justify-content: center;
+            align-items: center;
         }
         .btns {
           display: flex;
@@ -1000,9 +1009,9 @@ export default function HomePage() {
           letter-spacing: -0.01em;
         }
         .primary {
-          background: var(--blue);
-          color: #fff;
-          box-shadow: 0 14px 34px rgba(10, 71, 255, 0.22);
+          background: var(--primary);
+          color: var(--primaryText);
+          box-shadow: 0 14px 34px rgba(4, 7, 15, 0.18);
         }
         .primary:disabled {
           opacity: 0.6;
@@ -1012,8 +1021,8 @@ export default function HomePage() {
         .share {
           background: #fff;
           color: var(--text);
-          border: 1px solid rgba(10, 10, 10, 0.14);
-          box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
+          border: 1px solid rgba(4, 7, 15, 0.14);
+          box-shadow: 0 10px 26px rgba(4, 7, 15, 0.06);
         }
 
         /* creator badge */
