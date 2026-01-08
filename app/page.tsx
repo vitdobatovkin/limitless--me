@@ -1195,7 +1195,7 @@ export default function HomePage() {
 @media (max-width: 768px) {
   /* ===== общий мобильный лейаут ===== */
   .wrap {
-    padding: 8px 12px 16px; /* ❗ БЫЛО 20px сверху */
+    padding-bottom: calc(140px + env(safe-area-inset-bottom));
   }
 
   .stage {
@@ -1213,6 +1213,7 @@ export default function HomePage() {
   /* ===== КНОПКИ ===== */
   .actions {
     padding: 14px 14px 6px;
+    padding-bottom: 18px;
   }
 
   .bigReel {
