@@ -827,23 +827,32 @@ export default function HomePage() {
           position: relative;
         }
         .panel::before {
-          content: "";
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 0;
-          height: 18px;
-          background: var(--lime);
-        }
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: var(--line);
+}
+
         button:focus-visible {
           outline: none;
           box-shadow: 0 0 0 4px rgba(216, 245, 140, 0.45);
         }
 
         .primary:hover:not(:disabled) {
-          box-shadow: 0 16px 40px rgba(4, 7, 15, 0.22), 0 0 0 3px rgba(216, 245, 140, 0.22);
-        }
-
+  transform: translateY(-1px);
+  box-shadow:
+    0 18px 40px rgba(216, 245, 140, 0.55),
+    inset 0 -1px 0 rgba(4, 7, 15, 0.22);
+}
+.primary:active {
+  transform: translateY(0);
+  box-shadow:
+    0 10px 22px rgba(216, 245, 140, 0.45),
+    inset 0 2px 0 rgba(4, 7, 15, 0.25);
+}
         .share:hover {
           box-shadow: 0 12px 30px rgba(4, 7, 15, 0.08), 0 0 0 3px rgba(216, 245, 140, 0.18);
         }
@@ -1048,21 +1057,25 @@ export default function HomePage() {
           letter-spacing: -0.01em;
         }
         .primary {
-          background: var(--primary);
-          color: var(--primaryText);
-          box-shadow: 0 14px 34px rgba(4, 7, 15, 0.18);
-        }
+  background: var(--lime);
+  color: #0a0b0d;
+  box-shadow:
+    0 14px 34px rgba(216, 245, 140, 0.45),
+    inset 0 -1px 0 rgba(4, 7, 15, 0.18);
+  border: 1px solid rgba(4, 7, 15, 0.12);
+}
+
         .primary:disabled {
           opacity: 0.6;
           cursor: not-allowed;
           box-shadow: none;
         }
         .share {
-          background: #fff;
-          color: var(--text);
-          border: 1px solid rgba(4, 7, 15, 0.14);
-          box-shadow: 0 10px 26px rgba(4, 7, 15, 0.06);
-        }
+  background: #fff;
+  color: var(--text);
+  border: 1px solid rgba(4, 7, 15, 0.14);
+  box-shadow: 0 10px 26px rgba(4, 7, 15, 0.06);
+}
 
         /* creator badge */
         .creatorBadge {
