@@ -62,7 +62,6 @@ function pickWeightedIndex(list: Person[], last?: Person | null) {
   return weights.length - 1;
 }
 
-
 // ✅ единственный детектор мобилки (используем ВЕЗДЕ)
 function isMobileDevice() {
   if (typeof window === "undefined") return false;
@@ -506,7 +505,6 @@ export default function HomePage() {
     const len = people.length;
     const winnerIndex = pickWeightedIndex(people, lastWinnerRef.current);
 
-
     const winner = people[winnerIndex];
     if (winner) preloadOnce(avatarSrc(winner)).then(() => {});
 
@@ -578,7 +576,8 @@ export default function HomePage() {
           <div className="tag">LIMITLESS EDITION</div>
           <h1>How limitless are you?</h1>
           <p className="sub">
-            Tap <b>Limitless me</b> — quick spin and we'll discover your limitless potential
+            Tap <b>Limitless me</b> — quick spin and we'll discover your limitless
+            potential
           </p>
         </div>
 
@@ -608,8 +607,7 @@ export default function HomePage() {
                   const dist = Math.abs(x) / STEP;
 
                   const isCenter = i === HALF;
-                  const allowClick =
-                    mode === "locked" && isCenter && !!shownPerson;
+                  const allowClick = mode === "locked" && isCenter && !!shownPerson;
 
                   const popScale = allowClick ? 1.12 : 1;
                   const popY = allowClick ? -16 : 0;
@@ -664,12 +662,7 @@ export default function HomePage() {
 
             {mode === "locked" && shownPerson && (
               <div className="meta">
-                <a
-                  className="handleLink"
-                  href={url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <a className="handleLink" href={url} target="_blank" rel="noreferrer">
                   {shownPerson.handle}
                 </a>
                 <div className="bio">{shownPerson.bio || ""}</div>
@@ -689,11 +682,7 @@ export default function HomePage() {
 
           <div className="actions">
             <div className="btns">
-              <button
-                className="primary"
-                onClick={spin}
-                disabled={!people.length || !ready}
-              >
+              <button className="primary" onClick={spin} disabled={!people.length || !ready}>
                 {!ready ? "Loading…" : spinning ? "Spinning…" : "Limitless me"}
               </button>
 
@@ -707,43 +696,37 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ✅ footer stays inside .wrap so on mobile it appears right under the card */}
+        <div className="creatorBadge">
+          <a href="https://x.com/0x_fokki" target="_blank" rel="noreferrer" className="creatorRow">
+            <img
+              src="https://pbs.twimg.com/profile_images/1995398623689895936/PM9_bAhZ_400x400.jpg"
+              alt="fokki"
+              className="creatorAvatar"
+            />
+            <span>
+              Created by <b>fokki</b>
+            </span>
+          </a>
+
+          <a
+            href="https://limitless.exchange/?r=NFWM0IINH4"
+            target="_blank"
+            rel="noreferrer"
+            className="creatorRow"
+          >
+            <img
+              src="https://pbs.twimg.com/profile_images/1991090214949793792/wC1dUZA__400x400.png"
+              alt="Limitless"
+              className="creatorAvatar"
+            />
+            <span>
+              Join <b>Limitless</b>
+            </span>
+          </a>
+        </div>
       </div>
-
-      <div className="creatorBadge">
-        <a
-          href="https://x.com/0x_fokki"
-          target="_blank"
-          rel="noreferrer"
-          className="creatorRow"
-        >
-          <img
-            src="https://pbs.twimg.com/profile_images/1995398623689895936/PM9_bAhZ_400x400.jpg"
-            alt="fokki"
-            className="creatorAvatar"
-          />
-          <span>
-            Created by <b>fokki</b>
-          </span>
-        </a>
-
-        <a
-          href="https://limitless.exchange/?r=NFWM0IINH4"
-          target="_blank"
-          rel="noreferrer"
-          className="creatorRow"
-        >
-          <img
-            src="https://pbs.twimg.com/profile_images/1991090214949793792/wC1dUZA__400x400.png"
-            alt="Limitless"
-            className="creatorAvatar"
-          />
-          <span>
-            Join <b>Limitless</b>
-          </span>
-        </a>
-    </div>
-
-
 
       <style jsx global>{`
         :root {
@@ -761,13 +744,10 @@ export default function HomePage() {
 
           --brand-blue: #2174cf;
 
-          /* primary button */
-          --primary: #04070f;
-          --primaryText: #ffffff;
-
           /* subtle shadows */
-          --shadow: rgba(4, 7, 15, 0.10);
+          --shadow: rgba(4, 7, 15, 0.1);
         }
+
         * {
           box-sizing: border-box;
         }
@@ -777,28 +757,28 @@ export default function HomePage() {
         }
         body {
           margin: 0;
-          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-            Arial;
+          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
           background: var(--bg);
           color: var(--text);
           overflow-x: hidden;
         }
+
         .texture {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            background:
-              radial-gradient(900px 520px at 58% 10%, rgba(216, 245, 140, 0.28), transparent 62%),
-              radial-gradient(760px 460px at 28% 18%, rgba(216, 245, 140, 0.18), transparent 60%),
-              radial-gradient(820px 520px at 76% 14%, rgba(33, 116, 207, 0.06), transparent 66%),
-              repeating-linear-gradient(
-                90deg,
-                rgba(4, 7, 15, 0.03) 0 1px,
-                transparent 1px 6px
-              );
-            opacity: 0.75;
-            mix-blend-mode: multiply;
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          background: radial-gradient(
+              900px 520px at 58% 10%,
+              rgba(216, 245, 140, 0.28),
+              transparent 62%
+            ),
+            radial-gradient(760px 460px at 28% 18%, rgba(216, 245, 140, 0.18), transparent 60%),
+            radial-gradient(820px 520px at 76% 14%, rgba(33, 116, 207, 0.06), transparent 66%),
+            repeating-linear-gradient(90deg, rgba(4, 7, 15, 0.03) 0 1px, transparent 1px 6px);
+          opacity: 0.75;
+          mix-blend-mode: multiply;
         }
+
         #confetti {
           position: fixed;
           inset: 0;
@@ -847,6 +827,7 @@ export default function HomePage() {
           place-items: center;
           padding: 28px 18px 44px;
         }
+
         .hero {
           width: min(980px, 100%);
           margin-bottom: 18px;
@@ -855,7 +836,7 @@ export default function HomePage() {
           font-size: 12px;
           letter-spacing: 0.12em;
           text-transform: uppercase;
-          color: rgba(4, 7, 15, 0.50);
+          color: rgba(4, 7, 15, 0.5);
           margin-bottom: 10px;
           text-align: center;
           font-weight: 800;
@@ -876,6 +857,7 @@ export default function HomePage() {
           line-height: 1.45;
           text-align: center;
         }
+
         .panel {
           width: min(1240px, 96vw);
           margin: 44px auto 0;
@@ -883,59 +865,35 @@ export default function HomePage() {
           border-radius: 32px;
           background: var(--card);
           overflow: hidden;
-          box-shadow: 0 26px 80px rgba(4, 7, 15, 0.10);
+          box-shadow: 0 26px 80px rgba(4, 7, 15, 0.1);
           position: relative;
         }
         .panel::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 1px;
-  background: var(--line);
-}
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+          height: 1px;
+          background: var(--line);
+        }
 
         button:focus-visible {
           outline: none;
           box-shadow: 0 0 0 4px rgba(216, 245, 140, 0.45);
         }
 
-        .primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow:
-    0 18px 40px rgba(216, 245, 140, 0.55),
-    inset 0 -1px 0 rgba(4, 7, 15, 0.22);
-}
-.primary:active {
-  transform: translateY(0);
-  box-shadow:
-    0 10px 22px rgba(216, 245, 140, 0.45),
-    inset 0 2px 0 rgba(4, 7, 15, 0.25);
-}
-        .share:hover {
-          box-shadow: 0 12px 30px rgba(4, 7, 15, 0.08), 0 0 0 3px rgba(216, 245, 140, 0.18);
-        }
-        .carouselHintTop {
-          color: rgba(4, 7, 15, 0.55);
-        }
-
-        .carouselHintTop b,
-        .carouselHintBottom b {
-          background: linear-gradient(0deg, rgba(216,245,140,0.65), rgba(216,245,140,0.65));
-          padding: 0 4px;
-          border-radius: 6px;
-        }
         .stage {
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           gap: 12px;
-          padding: 62px 72px 46px; 
+          padding: 62px 72px 46px;
           text-align: center;
           position: relative;
         }
+
         .congratsText {
           font-size: 12px;
           font-weight: 800;
@@ -950,7 +908,6 @@ export default function HomePage() {
           opacity: 1;
         }
 
-        /* Copy around carousel */
         .carouselHintTop {
           font-size: 13px;
           font-weight: 700;
@@ -963,12 +920,9 @@ export default function HomePage() {
           font-size: 14px;
           color: rgba(10, 10, 10, 0.55);
           margin-top: 6px;
-          letter-spacing: normal;
-          text-transform: none;
           font-weight: 500;
         }
 
-        /* ===== REEL ===== */
         .bigReel {
           width: min(1180px, 96vw);
           height: 270px;
@@ -986,6 +940,7 @@ export default function HomePage() {
           align-items: center;
           justify-content: center;
         }
+
         .bigTile {
           position: absolute;
           top: 50%;
@@ -1005,8 +960,7 @@ export default function HomePage() {
           will-change: transform, opacity;
 
           transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
-            opacity 0.25s ease, box-shadow 0.35s ease,
-            border-color 0.35s ease;
+            opacity 0.25s ease, box-shadow 0.35s ease, border-color 0.35s ease;
         }
         .stage.animating .bigTile {
           transition: none !important;
@@ -1021,26 +975,24 @@ export default function HomePage() {
 
         .bigTile.winner {
           border-color: rgba(4, 7, 15, 0.18);
-          box-shadow:
-            0 50px 140px rgba(0, 0, 0, 0.22),
-            0 0 0 3px rgba(216, 245, 140, 0.42),
+          box-shadow: 0 50px 140px rgba(0, 0, 0, 0.22), 0 0 0 3px rgba(216, 245, 140, 0.42),
             0 0 0 10px rgba(216, 245, 140, 0.16);
         }
 
         .winnerBadge {
-            position: absolute;
-            left: 12px;
-            top: 12px;
-            padding: 7px 10px;
-            border-radius: 999px;
-            background: var(--lime);
-            color: var(--lime-ink);
-            font-size: 10px;
-            font-weight: 950;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            border: 1px solid rgba(4, 7, 15, 0.14);
-            box-shadow: 0 12px 26px rgba(216, 245, 140, 0.32);
+          position: absolute;
+          left: 12px;
+          top: 12px;
+          padding: 7px 10px;
+          border-radius: 999px;
+          background: var(--lime);
+          color: var(--lime-ink);
+          font-size: 10px;
+          font-weight: 950;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          border: 1px solid rgba(4, 7, 15, 0.14);
+          box-shadow: 0 12px 26px rgba(216, 245, 140, 0.32);
         }
 
         .bigReelMask {
@@ -1095,7 +1047,7 @@ export default function HomePage() {
           display: flex;
           padding: 24px 72px 28px;
           border-top: 1px solid var(--line);
-          background: #f2f3f5; /* или var(--bg) */
+          background: #f2f3f5;
           justify-content: center;
           align-items: center;
         }
@@ -1117,165 +1069,137 @@ export default function HomePage() {
           letter-spacing: -0.01em;
         }
         .primary {
-  background: var(--lime);
-  color: #0a0b0d;
-  box-shadow:
-    0 14px 34px rgba(216, 245, 140, 0.45),
-    inset 0 -1px 0 rgba(4, 7, 15, 0.18);
-  border: 1px solid rgba(4, 7, 15, 0.12);
-}
-
+          background: var(--lime);
+          color: #0a0b0d;
+          box-shadow: 0 14px 34px rgba(216, 245, 140, 0.45), inset 0 -1px 0 rgba(4, 7, 15, 0.18);
+          border: 1px solid rgba(4, 7, 15, 0.12);
+        }
         .primary:disabled {
           opacity: 0.6;
           cursor: not-allowed;
           box-shadow: none;
         }
+        .primary:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 18px 40px rgba(216, 245, 140, 0.55), inset 0 -1px 0 rgba(4, 7, 15, 0.22);
+        }
+        .primary:active {
+          transform: translateY(0);
+          box-shadow: 0 10px 22px rgba(216, 245, 140, 0.45), inset 0 2px 0 rgba(4, 7, 15, 0.25);
+        }
+
         .share {
-  background: #fff;
-  color: var(--text);
-  border: 1px solid rgba(4, 7, 15, 0.14);
-  box-shadow: 0 10px 26px rgba(4, 7, 15, 0.06);
-}
+          background: #fff;
+          color: var(--text);
+          border: 1px solid rgba(4, 7, 15, 0.14);
+          box-shadow: 0 10px 26px rgba(4, 7, 15, 0.06);
+        }
+        .share:hover {
+          box-shadow: 0 12px 30px rgba(4, 7, 15, 0.08), 0 0 0 3px rgba(216, 245, 140, 0.18);
+        }
 
-        /* creator badge */
-        /* creator badge */
-.creatorBadge {
-  position: fixed;
-  right: 20px;
-  bottom: 18px;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 13px;
-  line-height: 1;
-}
-
-.creatorRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  color: rgba(4, 7, 15, 0.55);
-}
-
-.creatorRow:hover {
-  color: rgba(4, 7, 15, 0.85);
-}
-
-.creatorAvatar {
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  object-fit: cover;
-}
-
-.creatorRow b {
-  font-weight: 800;
-  color: rgba(4, 7, 15, 0.75);
-}
-
-        .baseJoin {
-          position: relative;
-          padding-left: 14px;
-          text-decoration: none;
+        /* ===== footer ===== */
+        .creatorBadge {
+          position: fixed;
+          right: 20px;
+          bottom: 18px;
+          z-index: 40;
+          display: flex;
+          align-items: center;
+          gap: 12px;
           font-size: 13px;
-          font-weight: 600;
-          color: rgba(10, 10, 10, 0.45);
+          line-height: 1;
         }
-        .baseJoin::before {
-          content: "·";
-          position: absolute;
-          left: 4px;
-          color: rgba(10, 10, 10, 0.35);
+        .creatorRow {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          text-decoration: none;
+          color: rgba(4, 7, 15, 0.55);
         }
-        .baseJoin:hover {
-          color: rgba(10, 10, 10, 0.8);
+        .creatorRow:hover {
+          color: rgba(4, 7, 15, 0.85);
         }
-@media (max-width: 768px) {
-  /* ===== общий мобильный лейаут ===== */
-  .wrap {
-    padding: 8px 12px 16px;
-    /* ✅ большой отступ снизу, чтобы Twitter/X in-app не перекрывал кнопки/футер */
-    padding-bottom: calc(140px + env(safe-area-inset-bottom));
-  }
+        .creatorAvatar {
+          width: 22px;
+          height: 22px;
+          border-radius: 999px;
+          object-fit: cover;
+        }
+        .creatorRow b {
+          font-weight: 800;
+          color: rgba(4, 7, 15, 0.75);
+        }
 
-  .stage {
-    padding: 20px 14px 18px;
-    gap: 8px;
-  }
+        /* ===== MOBILE ===== */
+        @media (max-width: 768px) {
+          .wrap {
+            padding: 8px 12px 16px; /* ✅ убрали огромный отступ */
+          }
 
-  /* ===== ПАНЕЛЬ ===== */
-  .panel {
-    width: 100%;
-    margin: 6px auto 0;
-    border-radius: 26px;
-  }
+          .stage {
+            padding: 20px 14px 18px;
+            gap: 8px;
+          }
 
-  /* ===== КНОПКИ ===== */
-  .actions {
-    padding: 14px 14px 6px;
-    padding-bottom: 18px;
-  }
+          .panel {
+            width: 100%;
+            margin: 6px auto 0;
+            border-radius: 26px;
+          }
 
-  .bigReel {
-    height: 200px;
-    width: 100%;
-  }
+          .actions {
+            padding: 14px 14px 6px;
+            padding-bottom: 18px;
+          }
 
-  .bigTile {
-    width: 132px;
-    height: 132px;
-    margin-left: -66px;
-    margin-top: -66px;
-    border-radius: 30px;
-  }
+          .bigReel {
+            height: 200px;
+            width: 100%;
+          }
 
-  .handleLink {
-    font-size: 26px;
-  }
+          .bigTile {
+            width: 132px;
+            height: 132px;
+            margin-left: -66px;
+            margin-top: -66px;
+            border-radius: 30px;
+          }
 
-  .bio {
-    font-size: 14px;
-  }
+          .handleLink {
+            font-size: 26px;
+          }
 
-  /* ===== FOOTER (mobile) =====
-     ⚠️ В Twitter in-app sticky/fixed часто перекрывается оверлеями,
-     поэтому делаем footer обычным блоком (static) + запас снизу уже есть в .wrap
-  */
-  .creatorBadge {
-    position: static; /* ✅ вместо sticky/fixed */
-    width: 100%;
-    margin: 10px auto 0;
-    padding: 0 12px;
+          .bio {
+            font-size: 14px;
+          }
 
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
+          /* ✅ footer прямо под карточкой (static) */
+          .creatorBadge {
+            position: static;
+            width: 100%;
+            margin: 10px auto 0;
+            padding: 0 12px;
 
-    font-size: 12px;
-    line-height: 1;
-    pointer-events: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
 
-    background: transparent;
-  }
+            font-size: 12px;
+            line-height: 1;
+          }
 
-  .creatorRow {
-    white-space: nowrap;
-    flex: 0 0 auto;
-  }
+          .creatorRow {
+            white-space: nowrap;
+            flex: 0 0 auto;
+          }
 
-  .creatorAvatar {
-    width: 18px;
-    height: 18px;
-  }
-}
-
-
-
-
-
+          .creatorAvatar {
+            width: 18px;
+            height: 18px;
+          }
+        }
       `}</style>
     </>
   );
