@@ -710,17 +710,39 @@ export default function HomePage() {
       </div>
 
       <div className="creatorBadge">
-  <a
-    href="https://github.com/vitdobatovkin/nextjs-boilerplate"
-    target="_blank"
-    rel="noreferrer"
-    className="creatorRow"
-  >
-    <span>
-      Built with <b>Next.js</b>
-    </span>
-  </a>
-</div>
+        <a
+          href="https://x.com/trylimitless"
+          target="_blank"
+          rel="noreferrer"
+          className="creatorRow"
+        >
+          <img
+            src="https://pbs.twimg.com/profile_images/1864704290947727360/soSPdapG_400x400.jpg"
+            alt="trylimitless"
+            className="creatorAvatar"
+          />
+          <span>
+            Built by <b>Limitless</b>
+          </span>
+        </a>
+
+        <a
+          href="https://github.com/vitdobatovkin/nextjs-boilerplate"
+          target="_blank"
+          rel="noreferrer"
+          className="creatorRow"
+        >
+          <img
+            src="/avatars/default.png"
+            alt="Next.js"
+            className="creatorAvatar"
+          />
+          <span>
+            Built with <b>Next.js</b>
+          </span>
+        </a>
+    </div>
+
 
 
       <style jsx global>{`
@@ -1116,37 +1138,43 @@ export default function HomePage() {
 }
 
         /* creator badge */
-        .creatorBadge {
-          position: fixed;
-          right: 20px;
-          bottom: 18px;
-          z-index: 40;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 13px;
-          line-height: 1;
-        }
-        .creatorRow {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          text-decoration: none;
-          color: rgba(10, 10, 10, 0.55);
-        }
-        .creatorRow:hover {
-          color: rgba(10, 10, 10, 0.85);
-        }
-        .creatorAvatar {
-          width: 22px;
-          height: 22px;
-          border-radius: 999px;
-          object-fit: cover;
-        }
-        .creatorRow b {
-          font-weight: 800;
-          color: rgba(10, 10, 10, 0.75);
-        }
+        /* creator badge */
+.creatorBadge {
+  position: fixed;
+  right: 20px;
+  bottom: 18px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.creatorRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: rgba(4, 7, 15, 0.55);
+}
+
+.creatorRow:hover {
+  color: rgba(4, 7, 15, 0.85);
+}
+
+.creatorAvatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.creatorRow b {
+  font-weight: 800;
+  color: rgba(4, 7, 15, 0.75);
+}
+
         .baseJoin {
           position: relative;
           padding-left: 14px;
@@ -1209,14 +1237,15 @@ export default function HomePage() {
   }
 
   /* ===== FOOTER (STICKY) ===== */
+  @media (max-width: 768px) {
   .creatorBadge {
-    position: sticky; /* ✅ было relative */
-    bottom: env(safe-area-inset-bottom); /* ✅ */
-    z-index: 40; /* ✅ чтобы не пряталось */
+    position: sticky;
+    bottom: env(safe-area-inset-bottom);
+    z-index: 40;
 
     width: 100%;
     margin: 2px auto 0;
-    padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); /* ✅ чуть паддинг сверху, чтобы выглядело как бар */
+    padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
 
     display: flex;
     justify-content: space-between;
@@ -1230,8 +1259,7 @@ export default function HomePage() {
     background: transparent;
   }
 
-  .creatorRow,
-  .baseJoin {
+  .creatorRow {
     white-space: nowrap;
     flex: 0 0 auto;
   }
@@ -1240,6 +1268,8 @@ export default function HomePage() {
     width: 18px;
     height: 18px;
   }
+}
+
 
   .baseJoin {
     padding-left: 0;
