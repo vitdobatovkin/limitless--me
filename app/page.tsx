@@ -696,6 +696,9 @@ export default function HomePage() {
           --line: #e6e8eb;
 
           --lime: #d8f58c;
+          --lime-strong: #d3f77a;
+          --lime-ink: #0a0b0d;
+
           --brand-blue: #2174cf;
 
           /* primary button */
@@ -725,14 +728,15 @@ export default function HomePage() {
             inset: 0;
             pointer-events: none;
             background:
-              radial-gradient(900px 520px at 62% 12%, rgba(33, 116, 207, 0.08), transparent 65%),
-              radial-gradient(720px 420px at 30% 18%, rgba(216, 245, 140, 0.18), transparent 60%),
+              radial-gradient(900px 520px at 58% 10%, rgba(216, 245, 140, 0.28), transparent 62%),
+              radial-gradient(760px 460px at 28% 18%, rgba(216, 245, 140, 0.18), transparent 60%),
+              radial-gradient(820px 520px at 76% 14%, rgba(33, 116, 207, 0.06), transparent 66%),
               repeating-linear-gradient(
                 90deg,
-                rgba(4, 7, 15, 0.035) 0 1px,
+                rgba(4, 7, 15, 0.03) 0 1px,
                 transparent 1px 6px
               );
-            opacity: 0.65;
+            opacity: 0.75;
             mix-blend-mode: multiply;
         }
         #confetti {
@@ -788,12 +792,20 @@ export default function HomePage() {
           margin-bottom: 18px;
         }
         .tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 12px;
+          border-radius: 999px;
+          background: var(--lime);
+          color: var(--lime-ink);
           font-size: 12px;
           letter-spacing: 0.12em;
           text-transform: uppercase;
-          color: rgba(10, 10, 10, 0.55);
-          margin-bottom: 10px;
-          text-align: center;
+          font-weight: 950;
+          box-shadow: 0 12px 28px rgba(216, 245, 140, 0.28);
+          border: 1px solid rgba(4, 7, 15, 0.08);
+          margin: 0 auto 12px;
         }
         h1 {
           margin: 0;
@@ -820,6 +832,38 @@ export default function HomePage() {
           overflow: hidden;
           box-shadow: 0 26px 80px var(--shadow);
           position: relative;
+        }
+        .panel::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+          height: 18px;
+          background: linear-gradient(90deg, var(--lime), rgba(216, 245, 140, 0.45));
+          opacity: 0.9;
+        }
+        button:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 4px rgba(216, 245, 140, 0.45);
+        }
+
+        .primary:hover:not(:disabled) {
+          box-shadow: 0 16px 40px rgba(4, 7, 15, 0.22), 0 0 0 3px rgba(216, 245, 140, 0.22);
+        }
+
+        .share:hover {
+          box-shadow: 0 12px 30px rgba(4, 7, 15, 0.08), 0 0 0 3px rgba(216, 245, 140, 0.18);
+        }
+        .carouselHintTop {
+          color: rgba(4, 7, 15, 0.55);
+        }
+
+        .carouselHintTop b,
+        .carouselHintBottom b {
+          background: linear-gradient(0deg, rgba(216,245,140,0.65), rgba(216,245,140,0.65));
+          padding: 0 4px;
+          border-radius: 6px;
         }
         .stage {
           display: flex;
@@ -915,24 +959,27 @@ export default function HomePage() {
         }
 
         .bigTile.winner {
-          border-color: rgba(10, 10, 10, 0.22);
-          box-shadow: 0 50px 140px rgba(0, 0, 0, 0.28),
-            0 0 0 3px rgba(0, 0, 255, 0.18);
+          border-color: rgba(4, 7, 15, 0.18);
+          box-shadow:
+            0 50px 140px rgba(0, 0, 0, 0.22),
+            0 0 0 3px rgba(216, 245, 140, 0.42),
+            0 0 0 10px rgba(216, 245, 140, 0.18);
         }
 
         .winnerBadge {
             position: absolute;
             left: 12px;
             top: 12px;
-            padding: 7px 9px;
+            padding: 7px 10px;
             border-radius: 999px;
             background: var(--lime);
-            color: var(--text);
+            color: var(--lime-ink);
             font-size: 10px;
             font-weight: 950;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            box-shadow: 0 12px 26px rgba(4, 7, 15, 0.16);
+            border: 1px solid rgba(4, 7, 15, 0.14);
+            box-shadow: 0 12px 26px rgba(216, 245, 140, 0.32);
         }
 
         .bigReelMask {
