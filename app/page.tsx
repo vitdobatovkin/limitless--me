@@ -711,34 +711,34 @@ export default function HomePage() {
 
       <div className="creatorBadge">
         <a
-          href="https://x.com/trylimitless"
+          href="https://x.com/0x_fokki"
           target="_blank"
           rel="noreferrer"
           className="creatorRow"
         >
           <img
-            src="https://pbs.twimg.com/profile_images/1864704290947727360/soSPdapG_400x400.jpg"
-            alt="trylimitless"
+            src="https://pbs.twimg.com/profile_images/1995398623689895936/PM9_bAhZ_400x400.jpg"
+            alt="fokki"
             className="creatorAvatar"
           />
           <span>
-            Built by <b>Limitless</b>
+            Created by <b>fokki</b>
           </span>
         </a>
 
         <a
-          href="https://github.com/vitdobatovkin/nextjs-boilerplate"
+          href="https://limitless.exchange/?r=NFWM0IINH4"
           target="_blank"
           rel="noreferrer"
           className="creatorRow"
         >
           <img
-            src="/avatars/default.png"
-            alt="Next.js"
+            src="https://pbs.twimg.com/profile_images/1991090214949793792/wC1dUZA__400x400.png"
+            alt="Limitless"
             className="creatorAvatar"
           />
           <span>
-            Built with <b>Next.js</b>
+            Join <b>Limitless</b>
           </span>
         </a>
     </div>
