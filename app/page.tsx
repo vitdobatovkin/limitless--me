@@ -1109,6 +1109,7 @@ export default function HomePage() {
           gap: 12px;
           font-size: 13px;
           line-height: 1;
+          flex-direction: row-reverse;
         }
         .creatorRow {
           display: flex;
