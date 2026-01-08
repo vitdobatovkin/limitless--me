@@ -792,20 +792,13 @@ export default function HomePage() {
           margin-bottom: 18px;
         }
         .tag {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 12px;
-          border-radius: 999px;
-          background: var(--lime);
-          color: var(--lime-ink);
           font-size: 12px;
           letter-spacing: 0.12em;
           text-transform: uppercase;
-          font-weight: 950;
-          box-shadow: 0 12px 28px rgba(216, 245, 140, 0.28);
-          border: 1px solid rgba(4, 7, 15, 0.08);
-          margin: 0 auto 12px;
+          color: rgba(4, 7, 15, 0.50);
+          margin-bottom: 10px;
+          text-align: center;
+          font-weight: 800;
         }
         h1 {
           margin: 0;
@@ -830,7 +823,7 @@ export default function HomePage() {
           border-radius: 32px;
           background: var(--card);
           overflow: hidden;
-          box-shadow: 0 26px 80px var(--shadow);
+          box-shadow: 0 26px 80px rgba(4, 7, 15, 0.10);
           position: relative;
         }
         .panel::before {
@@ -840,8 +833,7 @@ export default function HomePage() {
           right: 0;
           top: 0;
           height: 18px;
-          background: linear-gradient(90deg, var(--lime), rgba(216, 245, 140, 0.45));
-          opacity: 0.9;
+          background: var(--lime);
         }
         button:focus-visible {
           outline: none;
@@ -871,7 +863,7 @@ export default function HomePage() {
           align-items: center;
           justify-content: center;
           gap: 12px;
-          padding: 54px 72px 46px;
+          padding: 62px 72px 46px; 
           text-align: center;
           position: relative;
         }
@@ -963,7 +955,7 @@ export default function HomePage() {
           box-shadow:
             0 50px 140px rgba(0, 0, 0, 0.22),
             0 0 0 3px rgba(216, 245, 140, 0.42),
-            0 0 0 10px rgba(216, 245, 140, 0.18);
+            0 0 0 10px rgba(216, 245, 140, 0.16);
         }
 
         .winnerBadge {
@@ -1031,12 +1023,12 @@ export default function HomePage() {
         }
 
         .actions {
-            display: flex;
-            padding: 24px 72px 28px;
-            border-top: 1px solid var(--line);
-            background: var(--bg);
-            justify-content: center;
-            align-items: center;
+          display: flex;
+          padding: 24px 72px 28px;
+          border-top: 1px solid var(--line);
+          background: #f2f3f5; /* или var(--bg) */
+          justify-content: center;
+          align-items: center;
         }
         .btns {
           display: flex;
