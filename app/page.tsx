@@ -17,7 +17,7 @@ function sanitize(list: Person[]): Person[] {
     const key = handle.toLowerCase();
     if (seen.has(key)) continue;
 
-    seen.add(key);
+    seen.add(key); 
     out.push({
       handle,
       image: (p.image || "").trim(),
