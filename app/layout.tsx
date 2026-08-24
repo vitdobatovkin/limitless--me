@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://grok-me.vercel.app"),
-  title: "GROK ME — Find your xAI alter ego",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://limitless-me.vercel.app"),
+  title: "GROK ME — Find your Grok match",
   description: "Spin the neural feed and discover who you are in the Grok universe.",
   openGraph: {
     title: "GROK ME",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "GROK ME",
-    description: "Spin the neural feed and discover your xAI alter ego.",
+    description: "Spin the neural feed and discover your Grok match.",
   },
 };
 

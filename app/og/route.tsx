@@ -11,7 +11,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const handle = safe(searchParams.get("handle") || "@grok", 36);
   const name = safe(searchParams.get("name") || handle, 52);
-  const bio = safe(searchParams.get("bio") || "Your match from the Grok universe.", 130);
+  const bio = safe(searchParams.get("bio") || "", 130);
   const special = searchParams.get("special") === "elon";
   const slug = handle.replace(/^@/, "").toLowerCase().replace(/[^a-z0-9_]/g, "");
   const avatar = new URL(`/avatars/${slug || "default"}.webp`, req.url).toString();
@@ -65,13 +65,15 @@ export async function GET(req: Request) {
 
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ color: special ? "#ffffff" : "#73fbd3", fontSize: 16, fontWeight: 800, letterSpacing: 5 }}>
-              {special ? "ELON MODE ACTIVATED" : "YOUR GROK ALTER EGO"}
+              {special ? "ELON MODE ACTIVATED" : "YOUR GROK MATCH"}
             </div>
             <div style={{ marginTop: 14, fontSize: 66, fontWeight: 800, letterSpacing: -3, lineHeight: 1 }}>
               {name}
             </div>
             <div style={{ marginTop: 10, color: "#a9afbb", fontSize: 28 }}>{handle}</div>
-            <div style={{ marginTop: 24, color: "#d9dde5", fontSize: 25, lineHeight: 1.35 }}>{bio}</div>
+            {bio && (
+              <div style={{ marginTop: 24, color: "#d9dde5", fontSize: 25, lineHeight: 1.35 }}>{bio}</div>
+            )}
           </div>
         </div>
 

@@ -13,16 +13,14 @@ type Props = {
 export const dynamic = "force-dynamic";
 
 function siteBase() {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://grok-me.vercel.app")
-  );
+  return process.env.NEXT_PUBLIC_SITE_URL || "https://limitless-me.vercel.app";
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const handle = (searchParams.handle || "@grok").trim();
   const name = (searchParams.name || handle).trim();
-  const bio = (searchParams.bio || "Your match from the Grok universe.").trim();
+  const bio = (searchParams.bio || "").trim();
+  const description = bio || "Who are you in the Grok universe?";
 
   const pageUrl = new URL("/r", siteBase());
   const ogUrl = new URL("/og", siteBase());
@@ -40,19 +38,19 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
   return {
     title,
-    description: bio,
+    description,
     openGraph: {
       type: "website",
       url: pageUrl.toString(),
       title,
-      description: bio,
-      images: [{ url: ogUrl.toString(), width: 1200, height: 630 }],
+      description,
+      images: [{ url: ogUrl.toString(), width: 1200, height: 630, type: "image/png", alt: `${name} — GROK ME` }],
     },
     twitter: {
       card: "summary_large_image",
       title,
-      description: bio,
-      images: [ogUrl.toString()],
+      description,
+      images: [{ url: ogUrl.toString(), width: 1200, height: 630, alt: `${name} — GROK ME` }],
     },
     robots: { index: true, follow: true },
   };
@@ -61,7 +59,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default function ResultPage({ searchParams }: Props) {
   const handle = (searchParams.handle || "@grok").trim();
   const name = (searchParams.name || handle).trim();
-  const bio = (searchParams.bio || "Your match from the Grok universe.").trim();
+  const bio = (searchParams.bio || "").trim();
 
   return (
     <main
@@ -85,7 +83,7 @@ export default function ResultPage({ searchParams }: Props) {
         <p style={{ color: "#73fbd3", letterSpacing: ".2em", fontWeight: 800 }}>GROK ME</p>
         <h1 style={{ fontSize: 56, margin: "12px 0" }}>{name}</h1>
         <p style={{ color: "#969daa" }}>{handle}</p>
-        <p style={{ maxWidth: 620, fontSize: 20 }}>{bio}</p>
+        {bio && <p style={{ maxWidth: 620, fontSize: 20 }}>{bio}</p>}
       </div>
     </main>
   );

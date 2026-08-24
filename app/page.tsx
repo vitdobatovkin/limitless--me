@@ -3,8 +3,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { RAW_PARTICIPANTS, type Person } from "./participants";
 
-const DEFAULT_BIO = "Your match from the Grok universe.";
-
 // ---------- helpers ----------
 function sanitize(list: Person[]): Person[] {
   const out: Person[] = [];
@@ -87,7 +85,7 @@ function buildSharePageUrl(winner: Person) {
   const u = new URL("/r", base);
 
   u.searchParams.set("handle", winner.handle);
-  u.searchParams.set("bio", winner.bio || DEFAULT_BIO);
+  if (winner.bio) u.searchParams.set("bio", winner.bio);
   if (winner.name) u.searchParams.set("name", winner.name);
   if (winner.special) u.searchParams.set("special", winner.special);
   u.searchParams.set("v", String(Date.now()));
@@ -100,7 +98,7 @@ function buildXIntentUrl(winner: Person) {
 
   const text =
     `Grok matched me with ${winner.handle}.\n` +
-    `${winner.bio || DEFAULT_BIO}\n\n` +
+    (winner.bio ? `${winner.bio}\n\n` : `\n`) +
     `Who are you in the Grok universe?`;
 
   const intent = new URL("https://x.com/intent/post");
@@ -731,7 +729,7 @@ export default function HomePage() {
           <div className="tag">THE GROK BOT SOCIAL EXPERIMENT</div>
           <h1>Who are you in the<br />Grok universe?</h1>
           <p className="sub">
-            Spin the feed and discover your Grok alter ego.
+            Spin the feed and discover your Grok match.
           </p>
         </div>
 
@@ -829,21 +827,13 @@ export default function HomePage() {
                     ? "OFFICIAL ENTITY"
                     : shownPerson.kind === "supporter"
                       ? "ACTIVE GROK BOT SUPPORTER"
-                      : "YOUR GROK ALTER EGO"}
+                      : "YOUR GROK MATCH"}
                 </div>
                 {shownPerson.name && <div className="personName">{shownPerson.name}</div>}
                 <a className="handleLink" href={url} target="_blank" rel="noreferrer">
                   {shownPerson.handle}
                 </a>
                 <div className="bio">{shownPerson.bio || ""}</div>
-                {celebrate && (
-                  <div className="basedLine">
-                    Grok matched your signal with{" "}
-                    <a href={url} target="_blank" rel="noreferrer">
-                      {shownPerson.handle}
-                    </a>
-                  </div>
-                )}
               </div>
             )}
 
@@ -885,16 +875,6 @@ export default function HomePage() {
             </span>
           </a>
 
-          <a
-            href="https://x.com/SpaceXAI"
-            target="_blank"
-            rel="noreferrer"
-            className="creatorRow"
-          >
-            <span>
-              Explore <b>SpaceXAI ↗</b>
-            </span>
-          </a>
         </div>
       </div>
 
@@ -1581,7 +1561,7 @@ export default function HomePage() {
         .personName {
           color: var(--text);
           font-size: clamp(26px, 3vw, 38px);
-          font-weight: 400;
+          font-weight: 700;
           letter-spacing: -.035em;
           line-height: 1.05;
         }
