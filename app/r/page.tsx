@@ -6,6 +6,7 @@ type Props = {
     name?: string;
     bio?: string;
     special?: string;
+    score?: string;
     v?: string;
   };
 };
@@ -32,9 +33,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   ogUrl.searchParams.set("name", name);
   ogUrl.searchParams.set("bio", bio);
   if (searchParams.special) ogUrl.searchParams.set("special", searchParams.special);
+  if (searchParams.score) ogUrl.searchParams.set("score", searchParams.score);
   if (searchParams.v) ogUrl.searchParams.set("v", searchParams.v);
 
-  const title = searchParams.special === "elon" ? "ELON MODE ACTIVATED" : `Grok matched me with ${name}`;
+  const title = searchParams.special === "elon" ? "ELON MODE ACTIVATED" : `GROK ME matched me with ${name}`;
 
   return {
     title,
@@ -60,6 +62,8 @@ export default function ResultPage({ searchParams }: Props) {
   const handle = (searchParams.handle || "@grok").trim();
   const name = (searchParams.name || handle).trim();
   const bio = (searchParams.bio || "").trim();
+  const score = Number(searchParams.score);
+  const safeScore = Number.isFinite(score) ? Math.min(99, Math.max(87, Math.round(score))) : null;
 
   return (
     <main
@@ -80,7 +84,9 @@ export default function ResultPage({ searchParams }: Props) {
         }}
       />
       <div>
-        <p style={{ color: "#73fbd3", letterSpacing: ".2em", fontWeight: 800 }}>GROK ME</p>
+        <p style={{ color: "#73fbd3", letterSpacing: ".2em", fontWeight: 800 }}>
+          {safeScore ? `YOUR GROK MATCH · ${safeScore}%` : "GROK ME"}
+        </p>
         <h1 style={{ fontSize: 56, margin: "12px 0" }}>{name}</h1>
         <p style={{ color: "#969daa" }}>{handle}</p>
         {bio && <p style={{ maxWidth: 620, fontSize: 20 }}>{bio}</p>}

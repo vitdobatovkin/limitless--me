@@ -20,6 +20,8 @@ function sanitize(list: Person[]): Person[] {
       handle,
       image: (p.image || "").trim(),
       bio: (p.bio || "").trim(),
+      role: (p.role || "").trim(),
+      score: p.score,
       name: (p.name || "").trim(),
       kind: p.kind,
       special: p.special,
@@ -33,7 +35,8 @@ function pickWeightedIndex(list: Person[], last?: Person | null) {
 
   const weights = list.map((p) => {
     if (last && p.handle === last.handle) return 0;
-    const w = 1;
+    const handle = p.handle.toLowerCase();
+    const w = handle === "@elonmusk" || handle === "@joshpkim" ? 2 : 1;
     total += w;
     return w;
   });
@@ -80,6 +83,10 @@ function profileUrl(handle: string) {
   return `https://x.com/${handle.replace(/^@/, "")}`;
 }
 
+function createMatchScore() {
+  return 87 + Math.floor(Math.random() * 13);
+}
+
 function buildSharePageUrl(winner: Person) {
   const base = window.location.origin;
   const u = new URL("/r", base);
@@ -88,6 +95,7 @@ function buildSharePageUrl(winner: Person) {
   if (winner.bio) u.searchParams.set("bio", winner.bio);
   if (winner.name) u.searchParams.set("name", winner.name);
   if (winner.special) u.searchParams.set("special", winner.special);
+  if (winner.score) u.searchParams.set("score", String(winner.score));
   u.searchParams.set("v", String(Date.now()));
 
   return u.toString();
@@ -97,7 +105,7 @@ function buildXIntentUrl(winner: Person) {
   const sharePageUrl = buildSharePageUrl(winner);
 
   const text =
-    `Grok matched me with ${winner.handle}.\n` +
+    `GROK ME matched me with ${winner.handle}${winner.score ? ` — ${winner.score}%` : ""}.\n` +
     (winner.bio ? `${winner.bio}\n\n` : `\n`) +
     `Who are you in the Grok universe?`;
 
@@ -308,13 +316,12 @@ export default function HomePage() {
   const winAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioUnlockedRef = useRef(false);
 
-  // ✅ init win sound ONLY on desktop (на мобиле вообще не создаём Audio)
+  // One reusable audio element for desktop and mobile.
   useEffect(() => {
-    if (isMobileDevice()) return;
-
     const a = new Audio("/sfx/win.wav"); // public/sfx/win.wav
     a.preload = "auto";
     a.volume = 0.85;
+    a.setAttribute("playsinline", "");
     winAudioRef.current = a;
 
     return () => {
@@ -326,9 +333,6 @@ export default function HomePage() {
   }, []);
 
   function unlockAudioOnce() {
-    // ✅ на мобиле никогда не анлочим
-    if (isMobileDevice()) return;
-
     if (audioUnlockedRef.current) return;
     const a = winAudioRef.current;
     if (!a) return;
@@ -357,17 +361,21 @@ export default function HomePage() {
   }
 
   function playWin() {
-    // ✅ звук ВСЕГДА OFF на мобиле
-    if (isMobileDevice()) return;
-
     const a = winAudioRef.current;
     if (!a) return;
 
     try {
       a.pause();
       a.currentTime = 0;
-      void a.play();
-    } catch {}
+      const playback = a.play();
+      if (playback && typeof playback.catch === "function") {
+        void playback.catch(() => {
+          audioUnlockedRef.current = false;
+        });
+      }
+    } catch {
+      audioUnlockedRef.current = false;
+    }
   }
 
   // ===== Reel parameters =====
@@ -606,16 +614,17 @@ export default function HomePage() {
           tw.active = false;
 
           const winner = people[tw.winnerIndex] ?? null;
+          const matchedWinner = winner ? { ...winner, score: createMatchScore() } : null;
           lastWinnerRef.current = winner;
 
           paint(); // финальный кадр карусели ещё в режиме spinning
 
-          setCurrent(winner);
+          setCurrent(matchedWinner);
           setCelebrate(true);
           setSpinning(false);
           setMode("locked"); // pop победителя дорисует effect, уже с CSS-транзишеном
           launch();
-          playWin(); // ✅ WIN SOUND (desktop only)
+          playWin(); // Reuses the preloaded sound on desktop and mobile.
 
           stopLoop();
           return;
@@ -635,7 +644,7 @@ export default function HomePage() {
   }
 
   async function spin() {
-    // ✅ на мобиле ничего не делаем со звуком
+    // Must run inside the user's tap so mobile browsers allow the later win sound.
     unlockAudioOnce();
 
     if (!people.length) return;
@@ -824,16 +833,16 @@ export default function HomePage() {
               <div className="meta">
                 <div className="resultLabel">
                   {shownPerson.kind === "entity"
-                    ? "OFFICIAL ENTITY"
+                    ? `OFFICIAL ENTITY${shownPerson.score ? ` · ${shownPerson.score}%` : ""}`
                     : shownPerson.kind === "supporter"
-                      ? "ACTIVE GROK BOT SUPPORTER"
-                      : "YOUR GROK MATCH"}
+                      ? `ACTIVE GROK BOT SUPPORTER${shownPerson.score ? ` · ${shownPerson.score}%` : ""}`
+                      : `YOUR GROK MATCH${shownPerson.score ? ` · ${shownPerson.score}%` : ""}`}
                 </div>
                 {shownPerson.name && <div className="personName">{shownPerson.name}</div>}
                 <a className="handleLink" href={url} target="_blank" rel="noreferrer">
                   {shownPerson.handle}
                 </a>
-                <div className="bio">{shownPerson.bio || ""}</div>
+                <div className="bio">{shownPerson.role || shownPerson.bio || ""}</div>
               </div>
             )}
 
@@ -1642,8 +1651,12 @@ export default function HomePage() {
         .elonMode .resultLabel { color: #fff; }
 
         .creatorBadge {
-          right: 22px;
-          bottom: 18px;
+          position: static;
+          z-index: auto;
+          width: min(1180px, 96vw);
+          margin: 16px auto 0;
+          padding: 0 8px;
+          justify-content: center;
           gap: 18px;
           flex-direction: row;
           color: rgba(255,255,255,.34);
