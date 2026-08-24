@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { RAW_PARTICIPANTS, type Person } from "./participants";
 
-const DEFAULT_BIO = "How limitless are you?";
+const DEFAULT_BIO = "Your match from the Grok universe.";
 
 // ---------- helpers ----------
 function sanitize(list: Person[]): Person[] {
@@ -22,32 +22,20 @@ function sanitize(list: Person[]): Person[] {
       handle,
       image: (p.image || "").trim(),
       bio: (p.bio || "").trim(),
+      name: (p.name || "").trim(),
+      kind: p.kind,
+      special: p.special,
     });
   }
   return out;
 }
-
-const DOUBLE_WEIGHT_HANDLES = new Set<string>([
-  "@larionov_al",
-  "@nickbailo",
-  "@leibovY",
-  "@Fink_Big",
-  "@JeremyJem",
-  "@JacquesWhales",
-  "@yemjules",
-  "@cjhtech",
-  "@Hecrypton",
-  "@dimahorshkov",
-  "@RMogylnyi",
-  "@0xClemm",
-]);
 
 function pickWeightedIndex(list: Person[], last?: Person | null) {
   let total = 0;
 
   const weights = list.map((p) => {
     if (last && p.handle === last.handle) return 0;
-    const w = DOUBLE_WEIGHT_HANDLES.has(p.handle) ? 2 : 1;
+    const w = 1;
     total += w;
     return w;
   });
@@ -77,40 +65,43 @@ function handleToSlug(handle: string) {
   return safe || "default";
 }
 
-function localAvatarSrc(handle?: string) {
-  if (!handle) return "/avatars/default.png";
-  return `/avatars/${handleToSlug(handle)}.png`;
+function localAvatarSrc(handle?: string, ext: "webp" | "png" = "webp") {
+  if (!handle) return `/avatars/default.${ext}`;
+  return `/avatars/${handleToSlug(handle)}.${ext}`;
 }
 
+// Первый выбор — локальный webp: он в ~10 раз легче png (6.6 МБ -> 0.7 МБ на всю
+// колоду) и не зависит от pbs.twimg.com, где ссылки протухают при смене аватарки
+// и режутся по referrer. p.image остаётся запасным вариантом в onError.
 function avatarSrc(p?: Person | null) {
-  if (!p) return "/avatars/default.png";
-  const img = (p.image || "").trim();
-  if (img) return img; // prefer explicit mapping
-  return localAvatarSrc(p.handle);
+  if (!p) return "/avatars/default.webp";
+  return (p.image || "").trim() || "/avatars/default.webp";
 }
 
 function profileUrl(handle: string) {
   return `https://x.com/${handle.replace(/^@/, "")}`;
 }
 
-function buildSharePageUrl(winner: { handle: string; bio?: string }) {
+function buildSharePageUrl(winner: Person) {
   const base = window.location.origin;
   const u = new URL("/r", base);
 
   u.searchParams.set("handle", winner.handle);
   u.searchParams.set("bio", winner.bio || DEFAULT_BIO);
+  if (winner.name) u.searchParams.set("name", winner.name);
+  if (winner.special) u.searchParams.set("special", winner.special);
   u.searchParams.set("v", String(Date.now()));
 
   return u.toString();
 }
 
-function buildXIntentUrl(winner: { handle: string; bio?: string }) {
+function buildXIntentUrl(winner: Person) {
   const sharePageUrl = buildSharePageUrl(winner);
 
   const text =
-    `I'm limitless as ${winner.handle} 🚀\n` +
-    `How limitless are you?\n\n` +
-    `Try yourself: https://limitless-me.vercel.app`;
+    `Grok matched me with ${winner.handle}.\n` +
+    `${winner.bio || DEFAULT_BIO}\n\n` +
+    `Who are you in the Grok universe?`;
 
   const intent = new URL("https://x.com/intent/post");
   intent.searchParams.set("text", text);
@@ -130,12 +121,35 @@ function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - t, 3);
 }
 
-function preloadOnce(src: string) {
+// Кэш уже загруженных (или попытанных) картинок.
+// Без него preloadOnce создавал new Image() на КАЖДЫЙ вызов, а вызывался он
+// в цикле внутри каждого кадра rAF -> ~1500 объектов в секунду.
+const preloadedImages = new Set<string>();
+
+function preloadOnce(src: string, timeoutMs = 5000) {
+  if (!src) return Promise.resolve();
+  if (preloadedImages.has(src)) return Promise.resolve();
+
   return new Promise<void>((resolve) => {
     const img = new Image();
     img.decoding = "async";
-    img.onload = () => resolve();
-    img.onerror = () => resolve();
+
+    // внешние CDN (например Twitter) могут резать по referrer
+    if (src.startsWith("http")) img.referrerPolicy = "no-referrer";
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      preloadedImages.add(src); // помечаем даже ошибку, чтобы не ретраить
+      resolve();
+    };
+
+    const timer = setTimeout(finish, timeoutMs);
+
+    img.onload = finish;
+    img.onerror = finish;
     img.src = src;
   });
 }
@@ -188,7 +202,7 @@ function useFullscreenConfetti() {
   }, []);
 
   const rand = (min: number, max: number) => Math.random() * (max - min) + min;
-  const COLORS = ["#04070F", "#D8F58C", "#2174CF", "#FFFFFF"];
+  const COLORS = ["#ffffff", "#73fbd3", "#6c63ff", "#8fb8ff"];
 
   const spawn = (count: number) => {
     for (let i = 0; i < count; i++) {
@@ -218,7 +232,7 @@ function useFullscreenConfetti() {
 
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-    if (t < untilRef.current) spawn(6);
+    if (t < untilRef.current) spawn(isMobileDevice() ? 3 : 6);
 
     const next: ConfettiParticle[] = [];
     for (const p of partsRef.current) {
@@ -257,8 +271,17 @@ function useFullscreenConfetti() {
   };
 
   const launch = () => {
-    untilRef.current = performance.now() + 2200;
-    spawn(220);
+    const reduced =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // ~1000 частиц с save/restore заметно роняют fps на слабых телефонах
+    const heavy = !isMobileDevice();
+
+    untilRef.current = performance.now() + (reduced ? 0 : heavy ? 2200 : 1400);
+    spawn(reduced ? 60 : heavy ? 220 : 120);
+
     if (!rafRef.current) rafRef.current = requestAnimationFrame(tick);
   };
 
@@ -349,18 +372,34 @@ export default function HomePage() {
     } catch {}
   }
 
-  // ===== Reel parameters (smaller tiles ~16-18%) =====
-  const TILE = 200;
-  const GAP = 24;
-  const STEP = TILE + GAP;
-
+  // ===== Reel parameters =====
   const WINDOW = 9;
   const HALF = Math.floor(WINDOW / 2);
+
+  // ВАЖНО: должно совпадать с .bigTile в CSS (desktop и @media max-width: 768px),
+  // иначе на мобиле плитки 132px стоят с шагом 224px и карусель выглядит дырявой.
+  const DESKTOP_TILE = 200;
+  const DESKTOP_GAP = 24;
+  const MOBILE_TILE = 132;
+  const MOBILE_GAP = 16;
+
+  const stepRef = useRef<number>(DESKTOP_TILE + DESKTOP_GAP);
 
   // ===== Continuous phase-based reel =====
   const phasePxRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
   const lastTRef = useRef<number>(0);
+
+  // refs вместо замыкания на state: tick живёт дольше одного рендера
+  const modeRef = useRef<Mode>("idle");
+  const peopleLenRef = useRef<number>(people.length);
+  const keepIdleMovingRef = useRef<boolean>(false); // держит карусель в движении, пока ждём async
+
+  // ===== Императивные плитки: React не участвует в кадре =====
+  const tileElsRef = useRef<Array<HTMLAnchorElement | null>>([]);
+  const tileImgsRef = useRef<Array<HTMLImageElement | null>>([]);
+  const tileHandlesRef = useRef<Array<string | null>>([]);
+  const lastCenterRef = useRef<number>(-1);
 
   const tweenRef = useRef<{
     active: boolean;
@@ -378,10 +417,120 @@ export default function HomePage() {
     winnerIndex: 0,
   });
 
-  const [, forceFrame] = useState(0);
+  useEffect(() => {
+    peopleLenRef.current = people.length;
+  }, [people.length]);
 
   useEffect(() => {
-    preloadOnce("/avatars/default.png").then(() => {});
+    preloadOnce("/avatars/default.webp").then(() => {});
+  }, []);
+
+  // ===== Один кадр: пишем стили прямо в DOM =====
+  function paint() {
+    const len = peopleLenRef.current;
+    if (!len) return;
+
+    const STEP = stepRef.current;
+    const phase = phasePxRef.current;
+
+    const baseIndex = Math.floor(phase / STEP);
+    const offset = -(phase - baseIndex * STEP);
+    const locked = modeRef.current === "locked";
+
+    for (let i = 0; i < WINDOW; i++) {
+      const el = tileElsRef.current[i];
+      if (!el) continue;
+
+      const p = people[mod(baseIndex + (i - HALF), len)];
+
+      const isCenter = i === HALF;
+      const x = (i - HALF) * STEP + offset;
+      const dist = Math.abs(x) / STEP;
+
+      const pop = locked && isCenter;
+
+      const opacity = locked
+        ? isCenter
+          ? 1
+          : 0.35
+        : clamp(1 - dist * 0.14, 0.18, 1);
+
+      el.style.transform =
+        "translate3d(" +
+        x.toFixed(2) +
+        "px, " +
+        (pop ? -16 : 0) +
+        "px, 0) scale(" +
+        (pop ? 1.12 : 1) +
+        ")";
+      el.style.opacity = String(opacity);
+      el.style.zIndex = isCenter ? "10" : "1";
+
+      // src трогаем только когда под плиткой реально сменился человек
+      const handle = p?.handle || "";
+      if (tileHandlesRef.current[i] !== handle) {
+        tileHandlesRef.current[i] = handle;
+
+        const img = tileImgsRef.current[i];
+        const src = avatarSrc(p);
+
+        if (img) {
+          img.dataset.step = p?.image ? "remote" : "default";
+          img.dataset.png = "";
+          img.dataset.remote = (p?.image || "").trim();
+          if (img.getAttribute("src") !== src) img.src = src;
+          img.alt = handle || "avatar";
+        }
+        el.setAttribute("aria-label", handle || "avatar");
+      }
+    }
+
+    // Предзагрузка соседей — при смене центра, а не каждый кадр
+    const centerIndex = mod(baseIndex, len);
+    if (centerIndex !== lastCenterRef.current) {
+      lastCenterRef.current = centerIndex;
+      for (let d = -HALF - 3; d <= HALF + 3; d++) {
+        const pp = people[mod(centerIndex + d, len)];
+        if (pp) void preloadOnce(avatarSrc(pp));
+      }
+    }
+  }
+
+  // mode/current поменялись -> React уже снял .animating, докрашиваем кадр
+  useEffect(() => {
+    modeRef.current = mode;
+    paint();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, current, ready]);
+
+  // Шаг карусели держим в соответствии с реальным размером плитки
+  useEffect(() => {
+    const applyMetrics = () => {
+      const next =
+        window.innerWidth <= 768
+          ? MOBILE_TILE + MOBILE_GAP
+          : DESKTOP_TILE + DESKTOP_GAP;
+
+      const prev = stepRef.current;
+      if (next === prev) return;
+
+      // сохраняем позицию в «индексах», а не в пикселях
+      phasePxRef.current = (phasePxRef.current / prev) * next;
+
+      const tw = tweenRef.current;
+      if (tw.active) {
+        tw.startPhase = (tw.startPhase / prev) * next;
+        tw.endPhase = (tw.endPhase / prev) * next;
+      }
+
+      stepRef.current = next;
+      paint();
+    };
+
+    applyMetrics();
+    window.addEventListener("resize", applyMetrics);
+    return () => window.removeEventListener("resize", applyMetrics);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -394,7 +543,7 @@ export default function HomePage() {
 
       const startIndex = (Math.random() * people.length) | 0;
       const startFrac = Math.random();
-      phasePxRef.current = (startIndex + startFrac) * STEP;
+      phasePxRef.current = (startIndex + startFrac) * stepRef.current;
 
       // preload стартового окна
       const R = 18;
@@ -409,6 +558,7 @@ export default function HomePage() {
 
       setCurrent(null);
       setReady(true);
+      paint();
       startLoop();
     })();
 
@@ -431,56 +581,56 @@ export default function HomePage() {
     const tick = (t: number) => {
       rafRef.current = requestAnimationFrame(tick);
 
-      const len = people.length;
+      // вкладка скрыта — не жжём CPU и не копим dt
+      if (typeof document !== "undefined" && document.hidden) {
+        lastTRef.current = 0;
+        return;
+      }
+
+      const len = peopleLenRef.current;
       if (!len) return;
+
+      const STEP = stepRef.current;
 
       const last = lastTRef.current || t;
       const dt = clamp((t - last) / 1000, 0, 0.05);
       lastTRef.current = t;
 
-      if (tweenRef.current.active) {
-        const tw = tweenRef.current;
+      const tw = tweenRef.current;
+
+      if (tw.active) {
         const tt = clamp((t - tw.t0) / tw.dur, 0, 1);
         const e = easeOutCubic(tt);
         phasePxRef.current = tw.startPhase + (tw.endPhase - tw.startPhase) * e;
 
         if (tt >= 1) {
           phasePxRef.current = tw.endPhase;
-          tweenRef.current.active = false;
+          tw.active = false;
 
-          const winner = people[tw.winnerIndex];
-          lastWinnerRef.current = winner ?? null;
+          const winner = people[tw.winnerIndex] ?? null;
+          lastWinnerRef.current = winner;
 
-          setCurrent(winner ?? null);
+          paint(); // финальный кадр карусели ещё в режиме spinning
+
+          setCurrent(winner);
           setCelebrate(true);
           setSpinning(false);
-          setMode("locked");
+          setMode("locked"); // pop победителя дорисует effect, уже с CSS-транзишеном
           launch();
           playWin(); // ✅ WIN SOUND (desktop only)
 
           stopLoop();
           return;
         }
-      } else {
-        if (mode === "idle") {
-          const speedPx = STEP * 0.55;
-          phasePxRef.current += speedPx * dt;
-        }
+      } else if (modeRef.current === "idle" || keepIdleMovingRef.current) {
+        phasePxRef.current += STEP * 0.55 * dt;
       }
 
       if (phasePxRef.current > 1e12) {
         phasePxRef.current = phasePxRef.current % (len * STEP);
       }
 
-      // preload вокруг центра (без setState)
-      const baseIndex = Math.floor(phasePxRef.current / STEP);
-      const centerIndex = mod(baseIndex, len);
-      for (let d = -12; d <= 12; d++) {
-        const pp = people[mod(centerIndex + d, len)];
-        if (pp) preloadOnce(avatarSrc(pp)).then(() => {});
-      }
-
-      forceFrame((x) => (x + 1) % 1_000_000);
+      paint();
     };
 
     rafRef.current = requestAnimationFrame(tick);
@@ -496,7 +646,11 @@ export default function HomePage() {
 
     setSpinning(true);
     setCelebrate(false);
+
+    // modeRef ставим синхронно: tick читает его в этом же кадре, а state придёт позже
+    modeRef.current = "spinning";
     setMode("spinning");
+
     lastWinnerRef.current = null;
     setCurrent(null);
 
@@ -507,6 +661,8 @@ export default function HomePage() {
 
     const winner = people[winnerIndex];
     if (winner) preloadOnce(avatarSrc(winner)).then(() => {});
+
+    const STEP = stepRef.current;
 
     const startPhase = phasePxRef.current;
     const startBase = Math.floor(startPhase / STEP);
@@ -544,17 +700,10 @@ export default function HomePage() {
     window.open(buildXIntentUrl(w), "_blank", "noopener,noreferrer");
   }
 
-  // ===== Derive center from phase (no state lag) =====
-  const len = people.length;
-  const phase = phasePxRef.current;
-
-  const baseIndex = Math.floor(phase / STEP);
-  const fracPx = phase - baseIndex * STEP;
-  const offset = -fracPx;
-
-  const centerPerson = len ? people[mod(baseIndex, len)] : null;
-  const shownPerson = mode === "locked" ? current : centerPerson;
+  // ===== Победитель. Сама карусель рисуется императивно в paint() =====
+  const shownPerson = mode === "locked" ? current : null;
   const url = shownPerson ? profileUrl(shownPerson.handle) : "#";
+  const isElonMode = shownPerson?.special === "elon";
 
   // ✅ подсказки показываем всегда когда не locked (возвращаются при повторном спине)
   const showHints = mode !== "locked";
@@ -571,57 +720,48 @@ export default function HomePage() {
         </div>
       )}
 
-      <div className="wrap">
+      <div className={`wrap ${isElonMode ? "elonMode" : ""}`}>
         <div className="hero">
-          <div className="tag">LIMITLESS EDITION</div>
-          <h1>How limitless are you?</h1>
+          <div className="brandMark" aria-label="Grok Me">
+            <span className="brandOrb" aria-hidden="true">
+              <img src="/avatars/bot.webp" alt="" />
+            </span>
+            <span>GROK ME</span>
+          </div>
+          <div className="tag">THE GROK BOT SOCIAL EXPERIMENT</div>
+          <h1>Who are you in the<br />Grok universe?</h1>
           <p className="sub">
-            Tap <b>Limitless me</b> — quick spin and we'll discover your limitless
-            potential
+            Spin the feed and discover your Grok alter ego.
           </p>
         </div>
 
-        <section className="panel" aria-label="Based generator">
+        <section className="panel" aria-label="Grok universe match generator">
           <div
             className={`stage ${celebrate ? "celebrate" : ""} ${
               mode !== "locked" ? "animating" : ""
             }`}
             aria-live="polite"
           >
-            <div className="congratsText">Congratulations</div>
+            <div className="congratsText">{isElonMode ? "ELON MODE ACTIVATED" : "NEURAL MATCH FOUND"}</div>
 
             {showHints && (
               <div className="carouselHintTop">
-                Spinning through limitless creators and builders
+                Scanning the minds behind Grok
               </div>
             )}
 
             <div className="bigReel" aria-label="reel">
               <div className="bigReelTrack" role="presentation">
                 {Array.from({ length: WINDOW }).map((_, i) => {
-                  const virtualIndex = baseIndex + (i - HALF);
-                  const idx = len ? mod(virtualIndex, len) : 0;
-                  const p = people[idx];
-
-                  const x = (i - HALF) * STEP + offset;
-                  const dist = Math.abs(x) / STEP;
-
                   const isCenter = i === HALF;
                   const allowClick = mode === "locked" && isCenter && !!shownPerson;
-
-                  const popScale = allowClick ? 1.12 : 1;
-                  const popY = allowClick ? -16 : 0;
-
-                  const opacity =
-                    mode === "locked"
-                      ? isCenter
-                        ? 1
-                        : 0.35
-                      : clamp(1 - dist * 0.14, 0.18, 1);
 
                   return (
                     <a
                       key={i}
+                      ref={(el) => {
+                        tileElsRef.current[i] = el;
+                      }}
                       className={`bigTile ${allowClick ? "winner" : ""}`}
                       href={allowClick ? url : undefined}
                       target={allowClick ? "_blank" : undefined}
@@ -629,23 +769,45 @@ export default function HomePage() {
                       onClick={(e) => {
                         if (!allowClick) e.preventDefault();
                       }}
-                      style={{
-                        transform: `translate3d(${x}px, ${popY}px, 0) scale(${popScale})`,
-                        opacity,
-                        zIndex: isCenter ? 10 : 1,
-                      }}
-                      aria-label={p?.handle || "avatar"}
+                      aria-label="avatar"
                     >
+                      {/* transform/opacity/src ставит paint() — React их не трогает,
+                          поэтому в кадре нет ни одного ре-рендера */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        alt={p?.handle || "avatar"}
-                        src={avatarSrc(p)}
+                        ref={(el) => {
+                          tileImgsRef.current[i] = el;
+                        }}
+                        alt="avatar"
+                        src="/avatars/default.webp"
                         loading="eager"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        draggable={false}
                         onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src =
-                            "/avatars/default.png";
+                          // webp -> png -> ссылка из participants -> default
+                          const img = e.currentTarget as HTMLImageElement;
+                          const step = img.dataset.step;
+
+                          if (step === "webp" && img.dataset.png) {
+                            img.dataset.step = "png";
+                            img.src = img.dataset.png;
+                            return;
+                          }
+                          if (step !== "remote" && step !== "default" && img.dataset.remote) {
+                            img.dataset.step = "remote";
+                            img.src = img.dataset.remote;
+                            return;
+                          }
+                          if (step !== "default") {
+                            img.dataset.step = "default";
+                            img.src = "/avatars/default.webp";
+                          }
                         }}
                       />
-                      {allowClick && <div className="winnerBadge">WINNER</div>}
+                      {allowClick && (
+                        <div className="winnerBadge">{isElonMode ? "ELON MODE" : "MATCH"}</div>
+                      )}
                     </a>
                   );
                 })}
@@ -656,19 +818,27 @@ export default function HomePage() {
 
             {showHints && (
               <div className="carouselHintBottom">
-                Spin to discover your limitless match
+                One signal. One match. Infinite curiosity.
               </div>
             )}
 
             {mode === "locked" && shownPerson && (
               <div className="meta">
+                <div className="resultLabel">
+                  {shownPerson.kind === "entity"
+                    ? "OFFICIAL ENTITY"
+                    : shownPerson.kind === "supporter"
+                      ? "ACTIVE GROK BOT SUPPORTER"
+                      : "YOUR GROK ALTER EGO"}
+                </div>
+                {shownPerson.name && <div className="personName">{shownPerson.name}</div>}
                 <a className="handleLink" href={url} target="_blank" rel="noreferrer">
                   {shownPerson.handle}
                 </a>
                 <div className="bio">{shownPerson.bio || ""}</div>
                 {celebrate && (
                   <div className="basedLine">
-                    You are limitless as{" "}
+                    Grok matched your signal with{" "}
                     <a href={url} target="_blank" rel="noreferrer">
                       {shownPerson.handle}
                     </a>
@@ -683,7 +853,7 @@ export default function HomePage() {
           <div className="actions">
             <div className="btns">
               <button className="primary" onClick={spin} disabled={!people.length || !ready}>
-                {!ready ? "Loading…" : spinning ? "Spinning…" : "Limitless me"}
+                {!ready ? "INITIALIZING…" : spinning ? "SCANNING…" : "GROK ME"}
               </button>
 
               <button
@@ -697,32 +867,32 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ✅ footer stays inside .wrap so on mobile it appears right under the card */}
         <div className="creatorBadge">
           <a href="https://x.com/0x_fokki" target="_blank" rel="noreferrer" className="creatorRow">
-            <img
-              src="https://pbs.twimg.com/profile_images/1995398623689895936/PM9_bAhZ_400x400.jpg"
-              alt="fokki"
-              className="creatorAvatar"
-            />
             <span>
-              Created by <b>fokki</b>
+              Built by <b>@0x_fokki</b>
             </span>
           </a>
 
           <a
-            href="https://limitless.exchange/?r=NFWM0IINH4"
+            href="https://x.com/bot"
             target="_blank"
             rel="noreferrer"
             className="creatorRow"
           >
-            <img
-              src="https://pbs.twimg.com/profile_images/1991090214949793792/wC1dUZA__400x400.png"
-              alt="Limitless"
-              className="creatorAvatar"
-            />
             <span>
-              Join <b>Limitless</b>
+              Built with <b>Grok Bot ↗</b>
+            </span>
+          </a>
+
+          <a
+            href="https://x.com/SpaceXAI"
+            target="_blank"
+            rel="noreferrer"
+            className="creatorRow"
+          >
+            <span>
+              Explore <b>SpaceXAI ↗</b>
             </span>
           </a>
         </div>
@@ -1200,6 +1370,337 @@ export default function HomePage() {
             width: 18px;
             height: 18px;
           }
+        }
+      `}</style>
+      <style jsx global>{`
+        :root {
+          --bg: #050608;
+          --card: rgba(12, 14, 19, 0.92);
+          --surface: #0c0e12;
+          --text: #f5f7fb;
+          --muted: #969daa;
+          --line: rgba(255, 255, 255, 0.1);
+          --accent: #73fbd3;
+          --accent-soft: #b8ffeb;
+          --accent-2: #7870ff;
+        }
+
+        body {
+          background: var(--bg);
+          color: var(--text);
+          min-height: 100%;
+        }
+
+        .texture {
+          opacity: 1;
+          mix-blend-mode: normal;
+          background:
+            radial-gradient(850px 520px at 50% -5%, rgba(113, 98, 255, 0.22), transparent 65%),
+            radial-gradient(620px 420px at 15% 65%, rgba(35, 197, 170, 0.11), transparent 70%),
+            radial-gradient(720px 480px at 92% 82%, rgba(45, 91, 208, 0.13), transparent 72%),
+            linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+          background-size: auto, auto, auto, 42px 42px, 42px 42px;
+        }
+
+        .texture::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background-image: radial-gradient(rgba(255,255,255,.32) .6px, transparent .7px);
+          background-size: 19px 19px;
+          opacity: .12;
+          mask-image: linear-gradient(to bottom, #000, transparent 80%);
+        }
+
+        .loadingOverlay {
+          background: rgba(5, 6, 8, 0.88);
+          color: var(--text);
+        }
+        .spinner {
+          border-color: rgba(255,255,255,.12);
+          border-top-color: var(--accent);
+        }
+        .loadingText { color: var(--muted); }
+
+        .wrap {
+          position: relative;
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 20px 72px;
+        }
+
+        .hero {
+          width: min(960px, 100%);
+          margin: 0 auto 30px;
+          text-align: center;
+        }
+
+        .brandMark {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 22px;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: .14em;
+        }
+
+        .brandOrb {
+          width: 30px;
+          height: 30px;
+          border: 1px solid var(--line);
+          border-radius: 50%;
+          display: block;
+          overflow: hidden;
+          background: #111;
+          box-shadow: 0 0 24px rgba(115,251,211,.12);
+          letter-spacing: 0;
+        }
+
+        .brandOrb img {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .tag {
+          color: var(--accent);
+          margin-bottom: 12px;
+          letter-spacing: .22em;
+          font-size: 10px;
+        }
+
+        h1 {
+          color: var(--text);
+          font-size: clamp(44px, 6vw, 78px);
+          line-height: .96;
+          letter-spacing: -.055em;
+          font-weight: 500;
+          text-wrap: balance;
+        }
+
+        .sub {
+          color: var(--muted);
+          font-size: 15px;
+          margin-top: 18px;
+          letter-spacing: .01em;
+        }
+
+        .panel {
+          width: min(1180px, 96vw);
+          margin: 0 auto;
+          border: 1px solid var(--line);
+          border-radius: 16px;
+          background: linear-gradient(145deg, rgba(18,21,29,.93), rgba(7,8,11,.96));
+          box-shadow: 0 40px 120px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.055);
+          backdrop-filter: blur(22px);
+        }
+
+        .panel::before {
+          height: 1px;
+          left: 12%;
+          right: 12%;
+          background: linear-gradient(90deg, transparent, rgba(115,251,211,.72), transparent);
+        }
+
+        .stage {
+          padding: 44px 60px 34px;
+          gap: 10px;
+        }
+
+        .congratsText {
+          color: var(--accent);
+          letter-spacing: .24em;
+          font-size: 10px;
+        }
+
+        .carouselHintTop {
+          color: rgba(255,255,255,.42);
+          letter-spacing: .18em;
+          font-size: 10px;
+        }
+        .carouselHintBottom {
+          color: rgba(255,255,255,.42);
+          font-size: 12px;
+        }
+
+        .bigReel { height: 238px; }
+
+        .bigTile {
+          width: 180px;
+          height: 180px;
+          margin-left: -90px;
+          margin-top: -90px;
+          border-radius: 14px;
+          border: 1px solid var(--line);
+          background: #0c0e12;
+          box-shadow: 0 22px 60px rgba(0,0,0,.45);
+        }
+
+        .bigTile::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(145deg, rgba(255,255,255,.08), transparent 32%);
+          pointer-events: none;
+        }
+
+        .bigTile.winner {
+          border-color: rgba(115,251,211,.72);
+          box-shadow: 0 30px 90px rgba(0,0,0,.62), 0 0 0 1px rgba(115,251,211,.2), 0 0 42px rgba(115,251,211,.2);
+        }
+
+        .winnerBadge {
+          left: 10px;
+          top: 10px;
+          background: rgba(5,8,10,.85);
+          color: var(--accent);
+          border-color: rgba(115,251,211,.4);
+          box-shadow: 0 8px 28px rgba(0,0,0,.4);
+          backdrop-filter: blur(8px);
+        }
+
+        .bigReelMask {
+          background: linear-gradient(90deg, rgba(10,12,16,.98), transparent 24%, transparent 76%, rgba(10,12,16,.98));
+          opacity: .86;
+        }
+
+        .resultLabel {
+          margin-bottom: 8px;
+          color: var(--accent);
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: .22em;
+        }
+
+        .personName {
+          color: var(--text);
+          font-size: clamp(26px, 3vw, 38px);
+          font-weight: 400;
+          letter-spacing: -.035em;
+          line-height: 1.05;
+        }
+
+        .handleLink {
+          margin-top: 5px;
+          color: var(--muted);
+          font-size: 17px;
+          font-weight: 400;
+          letter-spacing: 0;
+        }
+        .handleLink:hover { color: var(--accent); }
+
+        .bio {
+          max-width: 650px;
+          margin: 13px auto 0;
+          color: #c8c8cb;
+          font-size: 17px;
+          line-height: 1.5;
+        }
+
+        .basedLine { color: rgba(255,255,255,.42); }
+        .basedLine a {
+          color: var(--accent);
+          border-color: rgba(115,251,211,.3);
+        }
+
+        .actions {
+          padding: 20px 60px 24px;
+          border-color: var(--line);
+          background: rgba(0,0,0,.18);
+        }
+
+        button {
+          border-radius: 999px;
+          padding: 15px 28px;
+          font-size: 13px;
+          letter-spacing: .12em;
+          transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+        .primary {
+          min-width: 184px;
+          color: #040806;
+          background: var(--accent);
+          border-color: rgba(255,255,255,.35);
+          box-shadow: 0 14px 42px rgba(115,251,211,.22);
+        }
+        .primary:hover:not(:disabled) {
+          background: var(--accent);
+          box-shadow: 0 18px 52px rgba(115,251,211,.34);
+          transform: translateY(-2px);
+        }
+
+        .share {
+          color: var(--text);
+          background: rgba(255,255,255,.055);
+          border-color: rgba(255,255,255,.16);
+          box-shadow: none;
+        }
+        .share:hover {
+          border-color: rgba(115,251,211,.4);
+          box-shadow: 0 0 0 3px rgba(115,251,211,.07);
+        }
+
+        .elonMode .panel {
+          border-color: rgba(255,255,255,.3);
+          box-shadow: none;
+        }
+        .elonMode .panel::before {
+          background: linear-gradient(90deg, transparent, #fff, transparent);
+        }
+        .elonMode .bigTile.winner {
+          border-color: rgba(255,255,255,.92);
+          box-shadow: 0 0 0 1px rgba(255,255,255,.18);
+        }
+        .elonMode .congratsText,
+        .elonMode .resultLabel { color: #fff; }
+
+        .creatorBadge {
+          right: 22px;
+          bottom: 18px;
+          gap: 18px;
+          flex-direction: row;
+          color: rgba(255,255,255,.34);
+        }
+        .creatorRow { color: rgba(255,255,255,.46); }
+        .creatorRow:hover { color: var(--accent); }
+        .creatorRow b { color: rgba(255,255,255,.78); }
+        .disclaimer { font-size: 11px; color: rgba(255,255,255,.28); }
+
+        @media (max-width: 768px) {
+          .wrap { padding: 28px 12px 20px; justify-content: flex-start; }
+          .hero { margin-bottom: 22px; }
+          .brandMark { margin-bottom: 17px; }
+          h1 { font-size: clamp(39px, 12vw, 58px); }
+          .sub { font-size: 13px; }
+          .panel { margin: 0; border-radius: 14px; }
+          .stage { padding: 25px 12px 20px; }
+          .bigReel { height: 184px; }
+          .bigTile {
+            width: 126px;
+            height: 126px;
+            margin-left: -63px;
+            margin-top: -63px;
+            border-radius: 12px;
+          }
+          .personName { font-size: 27px; }
+          .handleLink { font-size: 14px; }
+          .bio { padding: 0 10px; font-size: 14px; }
+          .actions { padding: 15px 14px 18px; }
+          .creatorBadge {
+            margin-top: 13px;
+            padding: 0 5px;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+          }
+          .disclaimer { width: 100%; text-align: center; }
         }
       `}</style>
     </>

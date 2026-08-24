@@ -1,40 +1,42 @@
-// app/r/page.tsx
 import type { Metadata } from "next";
 
 type Props = {
   searchParams: {
     handle?: string;
+    name?: string;
     bio?: string;
+    special?: string;
     v?: string;
   };
 };
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const handle = (searchParams.handle || "@someone").trim();
-  const bio = (searchParams.bio || "How limitless are you?").trim();
-  const v = (searchParams.v || "").trim();
-
-  const base =
+function siteBase() {
+  return (
     process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "https://limitless-me.vercel.app");
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://grok-me.vercel.app")
+  );
+}
 
-  // URL именно этой страницы (важно для X)
-  const pageUrl = new URL("/r", base);
-  pageUrl.searchParams.set("handle", handle);
-  pageUrl.searchParams.set("bio", bio);
-  if (v) pageUrl.searchParams.set("v", v);
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const handle = (searchParams.handle || "@grok").trim();
+  const name = (searchParams.name || handle).trim();
+  const bio = (searchParams.bio || "Your match from the Grok universe.").trim();
 
-  // OG image
-  const ogUrl = new URL("/og", base);
+  const pageUrl = new URL("/r", siteBase());
+  const ogUrl = new URL("/og", siteBase());
+
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (value) pageUrl.searchParams.set(key, value);
+  }
   ogUrl.searchParams.set("handle", handle);
+  ogUrl.searchParams.set("name", name);
   ogUrl.searchParams.set("bio", bio);
-  if (v) ogUrl.searchParams.set("v", v);
+  if (searchParams.special) ogUrl.searchParams.set("special", searchParams.special);
+  if (searchParams.v) ogUrl.searchParams.set("v", searchParams.v);
 
-  const title = `I'm limitless as ${handle}`;
+  const title = searchParams.special === "elon" ? "ELON MODE ACTIVATED" : `Grok matched me with ${name}`;
 
   return {
     title,
@@ -44,13 +46,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       url: pageUrl.toString(),
       title,
       description: bio,
-      images: [
-        {
-          url: ogUrl.toString(),
-          width: 1200,
-          height: 630,
-        },
-      ],
+      images: [{ url: ogUrl.toString(), width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
@@ -62,30 +58,35 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   };
 }
 
-export default function Page({ searchParams }: Props) {
-  const handle = (searchParams.handle || "@someone").trim();
-  const bio = (searchParams.bio || "How limitless are you?").trim();
+export default function ResultPage({ searchParams }: Props) {
+  const handle = (searchParams.handle || "@grok").trim();
+  const name = (searchParams.name || handle).trim();
+  const bio = (searchParams.bio || "Your match from the Grok universe.").trim();
 
   return (
-    <html>
-      <head>
-        {/* ✅ Клиентский редирект — X его игнорирует, браузер выполняет */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if (!navigator.userAgent.includes("Twitterbot")) {
-                window.location.replace("/");
-              }
-            `,
-          }}
-        />
-      </head>
-      <body style={{ fontFamily: "system-ui", padding: 32 }}>
-        {/* Минимальный HTML, нужен только для бота */}
-        <h1>I'm limitless as {handle}</h1>
-        <p>{bio}</p>
-        <p>How limitless are you?</p>
-      </body>
-    </html>
+    <main
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        placeItems: "center",
+        padding: 32,
+        color: "#f5f7fb",
+        background: "radial-gradient(circle at 50% 0%, #25205b, #050608 58%)",
+        fontFamily: "system-ui, sans-serif",
+        textAlign: "center",
+      }}
+    >
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `if (!navigator.userAgent.includes("Twitterbot")) { window.location.replace("/"); }`,
+        }}
+      />
+      <div>
+        <p style={{ color: "#73fbd3", letterSpacing: ".2em", fontWeight: 800 }}>GROK ME</p>
+        <h1 style={{ fontSize: 56, margin: "12px 0" }}>{name}</h1>
+        <p style={{ color: "#969daa" }}>{handle}</p>
+        <p style={{ maxWidth: 620, fontSize: 20 }}>{bio}</p>
+      </div>
+    </main>
   );
 }
